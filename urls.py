@@ -19,6 +19,7 @@ urls = [
     (r'/api/v1.0/houses$', house.HouseHandler), # 处理房屋信息
     (r'/api/v1.0/houses/images', house.HouseImageHandler), # 上传房屋图片
     (r'/api/v1.0/houses/users', house.UserHouseHandler), # 查询当前用户房屋信息
+    (r'/api/v1.0/houses/detail', house.HouseDetailHandler), # 房屋详情页
 
 
 

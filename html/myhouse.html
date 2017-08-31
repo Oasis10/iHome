@@ -37,22 +37,21 @@
                         <a href="/newhouse.html">发布新房源</a>
                     </div>
                 </li>
-
             </ul>
              <script id="house-list-info" type="text/html">
                     {{each houses as house}}
                 <li>
-                    <a href="/detail.html?id={{house.house_id}}&f=my">
+                    <a href="/detail.html?id={{house.id}}&f=my">
                         <div class="house-title">
-                            <h3>房屋ID:1 —— 房屋标题1</h3>
+                            <h3>房屋ID:{{house.id}} —— {{house.title}}</h3>
                         </div>
                         <div class="house-content">
-                            <img src="/static/images/home01.jpg">
+                            <img src="{{house.url}}">
                             <div class="house-text">
                                 <ul>
-                                    <li>位于：西城区</li>
-                                    <li>价格：￥200/晚</li>
-                                    <li>发布时间：2016-11-11 20:00:00</li>
+                                    <li>位于：{{house.area}}</li>
+                                    <li>价格：￥{{house.price}}/晚</li>
+                                    <li>发布时间：{{house.ctime}}</li>
                                 </ul>
                             </div>
                         </div>

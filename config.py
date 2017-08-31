@@ -7,8 +7,8 @@ import constants
 settings = dict(
     debug=True,
     static_path=os.path.join(os.path.dirname(__file__), 'static'),
-    # xsrf_cookies=True,
-    xsrf_cookies=False,
+    xsrf_cookies=True,
+    # xsrf_cookies=False,
     cookie_secret=constants.XSRF_TOKEN
 )
 

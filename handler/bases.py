@@ -41,6 +41,7 @@ class BaseHandler(RequestHandler):
         self.session = Session(self)
         return self.session.data
 
+
 class GetXsrfCookie(BaseHandler):
     def get(self):
         self.xsrf_token

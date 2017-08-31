@@ -7,12 +7,13 @@ from bases import BaseHandler
 from utils.commons import required_login
 from utils.response_code import RET
 from utils.upload_image import upload2qiniu
+from utils.session import Session
 
 
 class AreasHandler(BaseHandler):
-    '''房源城区信息'''
+    """房源城区信息"""
     def get(self):
-        '''查询具体城区信息'''
+        """查询具体城区信息"""
 
         # 首先查询缓存中是否有城区信息
         try:
@@ -45,11 +46,11 @@ class AreasHandler(BaseHandler):
 
 
 class HouseHandler(BaseHandler):
-    '''房屋信息'''
+    """房屋信息"""
 
     @required_login
     def put(self):
-        '''提交新房源'''
+        """提交新房源"""
         user_id = self.session.data['user_id']
         # 前端发送过来的json数据的样例
         # {
@@ -143,7 +144,7 @@ class HouseHandler(BaseHandler):
 
 
 class HouseImageHandler(BaseHandler):
-    '''上传房屋图片'''
+    """上传房屋图片"""
 
     def put(self):
         house_id = self.get_argument('house_id')
@@ -159,7 +160,7 @@ class HouseImageHandler(BaseHandler):
                 return self.write(dict(errno=RET.THIRDERR, errmsg='上传房屋图片失败'))
             sql = 'insert into ih_house_image(hi_house_id, hi_url) values(%(house_id)s, %(url)s);' \
                   'update ih_house_info set hi_index_image_url=%(url)s WHERE hi_house_id=%(house_id)s'
-            url = constants.QINIU_URL_PREFIX + key
+            url = key
             try:
                 self.db.execute(sql, url=url, house_id=house_id)
             except Exception, e:
@@ -168,17 +169,17 @@ class HouseImageHandler(BaseHandler):
             return self.write(dict(
                 errno=RET.OK,
                 errmsg='ok',
-                url = url
+                url = constants.QINIU_URL_PREFIX+url
             ))
         return self.write(dict(errno=RET.PARAMERR, errmsg='参数缺失'))
 
 
 class UserHouseHandler(BaseHandler):
-    '''处理用户的房屋信息'''
+    """处理用户的房屋信息"""
 
     @required_login
     def get(self):
-        '''获取用户房屋信息'''
+        """获取用户房屋信息"""
         # house_id
         # title
         # image_url
@@ -187,10 +188,79 @@ class UserHouseHandler(BaseHandler):
         # time
         user_id = self.session.data['user_id']
         # 查询用户名下房源信息
-        sql = "select a.hi_house_id,a.hi_title,a.hi_price,a.hi_ctime,b.ai_name,a.hi_index_image_url " \
-              "from ih_house_info a left join ih_area_info b on a.hi_area_id=b.ai_area_id where a.hi_user_id=%s;"
         sql = 'select a.hi_house_id,a.hi_title,a.hi_price,a.hi_ctime,a.hi_index_image_url,b.ai_name ' \
-              'from ih_house_info a LEFT JOIN '
+              'from ih_house_info a LEFT JOIN ih_area_info b on a.hi_area_id=b.ai_area_id where a.hi_user_id=%s; '
+        try:
+            result = self.db.query(sql, user_id)
+        except Exception, e:
+            logging.error(e)
+            return self.write(dict(errno=RET.DBERR, errmsg='查询数据失败'))
+        # 用于存储用户名下的房屋信息
+        houses = []
+        if result:
+            for item in result:
+                house = {
+                    'id':item['hi_house_id'],
+                    'title':item['hi_title'],
+                    'price':item['hi_price'],
+                    'ctime':str(item['hi_ctime']),
+                    'url':constants.QINIU_URL_PREFIX+item['hi_index_image_url'],
+                    'area':item['ai_name']
+                }
+                houses.append(house)
+        return self.write(dict(errno=RET.OK, errmsg='ok', houses=houses))
+
+
+class HouseDetailHandler(BaseHandler):
+    """房屋详情页"""
+
+
+    def get(self, house_id):
+        """处理请求"""
+
+        session = Session(self)
+        # 获取用户id,如果未登录的话,设置为-1
+        user_id = session.data.get('user_id', '-1')
+
+        sql = "select hi_title,hi_price,hi_address,hi_room_count,hi_acreage,hi_house_unit,hi_capacity,hi_beds," \
+              "hi_deposit,hi_min_days,hi_max_days,up_name,up_avatar,hi_user_id from ih_house_info inner join " \
+              "ih_user_profile on hi_user_id=up_user_id where hi_house_id=%s"
+
+        try:
+            result = self.db.get(sql, house_id)
+        except Exception, e:
+            logging.error(e)
+            return self.write(dict(errno=RET.DBERR, errmsg='get data error'))
+        # 查询无结果,说明house_id不存在
+        if not result:
+            return self.write(dict(errno=RET.NODATA, errmsg='no data'))
+
+        house = {
+            'house_id':house_id,
+            'price':result['hi_price'],
+            'user_id':result['hi_user_id'],
+            'title':result['hi_title'],
+            'address':result['hi_address'],
+            'room_count':result['hi_room_count'],
+            'acreage':result['hi_acreage'],
+            'house_unit':result['hi_house_unit'],
+            'capacity':result['hi_capacity'],
+            'beds':result['hi_beds'],
+            'deposit':result['hi_deposit'],
+            'min_days':result['hi_min_days'],
+            'max_days':result['hi_max_days'],
+            'name':result['up_name'],
+            'avatar':result['up_avatar']
+        }
+
+        # 获取房屋图片信息
+        sql = 'select hi_url from ih_house_image WHERE hi_house_id=%s'
+        try:
+            result = self.db.query(sql, house_id)
+        except Exception, e:
+            logging.error(e)
+
+
 
 
 

@@ -11,10 +11,10 @@ from utils.commons import required_login
 
 
 class UserHandler(BaseHandler):
-    '''处理用户注册'''
+    """处理用户注册"""
 
     def put(self):
-        '''用户注册数据，存入数据库中'''
+        """用户注册数据，存入数据库中"""
         # 从json中获取参数，手机号，密码，短信验证码
         mobile = self.json_data.get('mobile')
         password = self.json_data.get('password')
@@ -103,7 +103,7 @@ class UserHandler(BaseHandler):
 
     @required_login
     def get(self):
-        '''处理个人主页信息/头像内容'''
+        """处理个人主页信息/头像内容"""
         # 第一种方法, 查询mysql数据库
         # user_id = self.session.data['user_id']
         # sql = 'select up_avatar from ih_user_profile WHERE up_user_id=%s;'
@@ -131,7 +131,7 @@ class UserHandler(BaseHandler):
 
     @required_login
     def post(self):
-        '''处理用户修改用户名'''
+        """处理用户修改用户名"""
         user_id = self.session.data['user_id']
         name = self.get_argument('name')
         if name:
@@ -164,10 +164,10 @@ class UserHandler(BaseHandler):
 
 
 class SessionHandler(BaseHandler):
-    '''对于session资源的操作，包括登录登出'''
+    """对于session资源的操作，包括登录登出"""
 
     def put(self):
-        '''登录'''
+        """登录"""
         # 从前端传输的json数据中取出手机号和密码信息
         mobile = self.json_data.get('mobile')
         password = self.json_data.get('password')
@@ -227,12 +227,12 @@ class SessionHandler(BaseHandler):
 
     @required_login
     def delete(self):
-        '''登出'''
+        """登出"""
         self.session.clear()
         return self.write(dict(errno=RET.OK, errmsg='OK'))
 
     def get(self):
-        '''判断用户登录状态'''
+        """判断用户登录状态"""
         data = self.get_current_user()
         user_name = data.get('name')
         if user_name:
@@ -247,7 +247,7 @@ class SessionHandler(BaseHandler):
 
 
 class MobileAjaxHandler(BaseHandler):
-    '''处理检验手机号是否被注册过及是否合法ajax请求'''
+    """处理检验手机号是否被注册过及是否合法ajax请求"""
 
     def get(self):
 
